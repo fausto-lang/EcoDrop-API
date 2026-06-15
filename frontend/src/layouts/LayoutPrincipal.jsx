@@ -37,6 +37,12 @@ export function LayoutPrincipal() {
                 Ranking
               </Link>
             </li>
+            <li>
+              <Link to="/contabilidad">
+                <span className="material-symbols-outlined">point_of_sale</span>
+                Contabilidad
+              </Link>
+            </li>
           </ul>
         </nav>
 

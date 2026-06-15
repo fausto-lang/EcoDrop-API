@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { LayoutPrincipal } from "../layouts/LayoutPrincipal";
+import Ranking from "./Ranking";
+import Contabilidad from "./Contabilidad";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +19,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "ranking",
-        element: <h1>Ranking</h1>,
+        element: <Ranking />,
+      },
+      {
+        path: "contabilidad",
+        element: <Contabilidad />,
       },
     ],
   },

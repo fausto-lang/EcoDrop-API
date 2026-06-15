@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from users import views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/contabilidad/<int:user_id>/', views.contabilidad_diaria, name='contabilidad_diaria'),
+    path('api/ranking/', views.ranking_recicladores, name='ranking_recicladores'),
+    path('api/contabilidad/registrar/', views.registrar_contabilidad, name='registrar_contabilidad'),
 ]
