@@ -1,0 +1,369 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 30px;
+  margin: 0 auto;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.header {
+  text-align: left;
+}
+
+.pageTitle {
+  color: #004d40;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.pageSubtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0;
+}
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.cardImage,
+.cardVoice,
+.cardCategories {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  height: 310px;
+  overflow-y: auto;
+}
+
+.cardImage:hover,
+.cardVoice:hover,
+.cardCategories:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+}
+
+.cardImage {
+  grid-column: 1 / 3;
+}
+
+.iconCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #004d40;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.iconCircle span {
+  font-size: 1.75rem;
+}
+
+.cardImage h3,
+.cardVoice h3 {
+  color: #0f172a;
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem 0;
+  font-weight: 700;
+}
+
+.cardImage p,
+.cardVoice p {
+  color: #64748b;
+  font-size: 0.95rem;
+  max-width: 480px;
+  margin: 0 0 1.75rem 0;
+  line-height: 1.5;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.btnPrimary {
+  background-color: #004d40;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btnPrimary:hover {
+  background-color: #00332a;
+}
+
+.btnSecondary {
+  background-color: #e2e8f0;
+  color: #334155;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btnSecondary:hover {
+  background-color: #cbd5e1;
+}
+
+.voiceIcon {
+  background-color: #00e699;
+  color: #004d40;
+}
+
+.cardVoice h3 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardCategories {
+  align-items: flex-start;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.sectionTitle {
+  color: #004d40;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+}
+
+.categoriesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.categoryButton {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.categoryButton span:first-child {
+  color: #00e699;
+  font-size: 1.75rem;
+}
+
+.categoryButton:hover {
+  border-color: #00e699;
+  background-color: rgba(0, 230, 153, 0.04);
+}
+
+.categoryName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.loadingText {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalForm {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.08),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalTitle {
+  color: #004d40;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modalSubtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: -0.5rem 0 0.5rem 0;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputGroup label {
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.inputGroup input {
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-size: 0.95rem;
+  outline: none;
+  color: #0f172a;
+  transition: all 0.2s;
+}
+
+.inputGroup input:focus {
+  border-color: #00e699;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 230, 153, 0.12);
+}
+
+.priceSummaryCard {
+  background-color: rgba(0, 230, 153, 0.06);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px dashed #00cc88;
+}
+
+.priceLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #004d40;
+}
+
+.priceValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #004d40;
+}
+
+.modalActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btnModalConfirm {
+  background-color: #00e699;
+  color: #004d40;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.btnModalConfirm:hover {
+  background-color: #00cc88;
+}
+
+.btnModalCancel {
+  background-color: transparent;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  padding: 0.8rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.btnModalCancel:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

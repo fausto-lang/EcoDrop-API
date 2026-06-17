@@ -25,7 +25,6 @@
 
 body {
   font-family: var(--fuente-principal);
-  background-color: #0b0f19;
   color: var(--texto-principal);
   display: flex;
   justify-content: center;

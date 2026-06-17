@@ -1,0 +1,69 @@
+.container {
+  width: 100%;
+  height: 100vh;
+  padding: 30px;
+  position: relative;
+}
+
+.container header {
+  width: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btn__add {
+  padding: 0px 20px;
+  border-radius: 10px;
+  background: var(--marca-principal);
+  color: var(--texto-principal);
+  font-weight: bolder;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cards {
+  width: 100%;
+  max-height: 550px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  overflow-y: auto;
+}
+
+.edit {
+  background: var(--marca-principal);
+}
+
+.delete {
+  background: red;
+}
+
+.activate {
+  display: block;
+}
+
+.close {
+  padding: 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--marca-principal);
+  color: var(--texto-principal);
+  cursor: pointer;
+}

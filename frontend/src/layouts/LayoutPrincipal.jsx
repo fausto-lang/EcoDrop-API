@@ -1,7 +1,8 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import "./LayoutPrincipal.css";
 
 export function LayoutPrincipal() {
+  const location = useLocation();
   return (
     <div className="contenedor-aplicacion">
       <aside className="barra-lateral">
@@ -15,14 +16,18 @@ export function LayoutPrincipal() {
 
         <nav className="navegacion-lateral">
           <ul>
-            <li>
+            <li className={location.pathname === "/" ? "active" : ""}>
               <Link to="/">
                 <span className="material-symbols-outlined">analytics</span>
                 Clasificar
               </Link>
             </li>
 
-            <li>
+            <li
+              className={
+                location.pathname === "/administracion" ? "active" : ""
+              }
+            >
               <Link to="/administracion">
                 <span className="material-symbols-outlined">
                   admin_panel_settings
@@ -31,13 +36,15 @@ export function LayoutPrincipal() {
               </Link>
             </li>
 
-            <li>
+            <li className={location.pathname === "/ranking" ? "active" : ""}>
               <Link to="/ranking">
                 <span className="material-symbols-outlined">leaderboard</span>
                 Ranking
               </Link>
             </li>
-            <li>
+            <li
+              className={location.pathname === "/contabilidad" ? "active" : ""}
+            >
               <Link to="/contabilidad">
                 <span className="material-symbols-outlined">point_of_sale</span>
                 Contabilidad
@@ -45,23 +52,6 @@ export function LayoutPrincipal() {
             </li>
           </ul>
         </nav>
-
-        <div className="pie-lateral">
-          <ul className="navegacion-pie">
-            <li>
-              <Link to="#">
-                <span className="material-symbols-outlined">help</span>
-                Ayuda
-              </Link>
-            </li>
-            <li>
-              <Link to="#" className="cerrar-sesion">
-                <span className="material-symbols-outlined">logout</span>
-                Cerrar Sesión
-              </Link>
-            </li>
-          </ul>
-        </div>
       </aside>
 
       <main className="contenido-principal">

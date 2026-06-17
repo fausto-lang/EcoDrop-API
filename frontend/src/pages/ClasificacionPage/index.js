@@ -1,0 +1,1 @@
+export { ClasificacionPage } from "./ClasificacionPage";

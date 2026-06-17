@@ -1,8 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { LayoutPrincipal } from "../layouts/LayoutPrincipal";
-import Ranking from "./Ranking";
-import Contabilidad from "./Contabilidad";
+import {
+  AdministracionPage,
+  ContabilidadPage,
+  RankingPage,
+  ClasificacionPage,
+} from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -11,19 +15,19 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <h1>Clasificacion</h1>,
+        element: <ClasificacionPage />,
       },
       {
         path: "administracion",
-        element: <h1>Administracion</h1>,
+        element: <AdministracionPage />,
       },
       {
         path: "ranking",
-        element: <Ranking />,
+        element: <RankingPage />,
       },
       {
         path: "contabilidad",
-        element: <Contabilidad />,
+        element: <ContabilidadPage />,
       },
     ],
   },

@@ -8,7 +8,7 @@
 }
 
 .barra-lateral {
-  width: 240px;
+  width: 20vw;
   background-color: var(--fondo-lateral);
   border-right: 1px solid var(--color-borde);
   display: flex;
@@ -104,4 +104,14 @@
   color: var(--texto-atenuado);
   text-decoration: none;
   font-size: 14px;
+}
+
+.contenido-principal {
+  width: 80vw;
+}
+
+.active a {
+  background-color: var(--marca-principal);
+  color: var(--texto-principal);
+  border: 10px;
 }
