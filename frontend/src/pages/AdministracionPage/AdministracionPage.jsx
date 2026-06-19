@@ -1,7 +1,7 @@
 import { useState } from "react";
 import style from "./AdministracionPage.module.css";
 import { useResiduos } from "../../hooks/useResiduos";
-import { ResiduoCard, ResiduoForm } from "../../components";
+import { ResiduoCard, ResiduoForm, NavAdministracion } from "../../components";
 
 export function AdministracionPage() {
   const { residuos, crear, actualizar, eliminar } = useResiduos();
@@ -48,6 +48,7 @@ export function AdministracionPage() {
 
   return (
     <div className={style.container}>
+      <NavAdministracion />
       <header>
         <section>
           <h1 className={style.title}>Administrar Residuos</h1>

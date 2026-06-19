@@ -1,12 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { LayoutPrincipal } from "../layouts/LayoutPrincipal";
-import {
-  AdministracionPage,
-  ContabilidadPage,
-  RankingPage,
-  ClasificacionPage,
-} from "../pages";
+import { LayoutPrincipal, LayoutAdministracion } from "../layouts";
+import { ContabilidadPage, RankingPage, ClasificacionPage } from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +14,17 @@ export const router = createBrowserRouter([
       },
       {
         path: "administracion",
-        element: <AdministracionPage />,
+        element: <LayoutAdministracion />,
+        children: [
+          {
+            path: "residuos",
+            element: <h1>Adios mundo</h1>,
+          },
+          {
+            path: "usuarios",
+            element: <h1>Hola mundo</h1>,
+          },
+        ],
       },
       {
         path: "ranking",
@@ -33,6 +38,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <h1>Pagina no encontrada</h1>,
+    element: <h1>Página no encontrada</h1>,
   },
 ]);

@@ -25,10 +25,13 @@ export function LayoutPrincipal() {
 
             <li
               className={
-                location.pathname === "/administracion" ? "active" : ""
+                location.pathname === "/administracion/residuos" ||
+                location.pathname === "/administracion/usuarios"
+                  ? "active"
+                  : ""
               }
             >
-              <Link to="/administracion">
+              <Link to="/administracion/residuos">
                 <span className="material-symbols-outlined">
                   admin_panel_settings
                 </span>
