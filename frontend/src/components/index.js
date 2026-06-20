@@ -1,3 +1,3 @@
 export { ResiduoCard } from "./ResiduoCard/ResiduoCard";
-export { ResiduoForm } from "./ResiduoForm/ResiduoForm";
+export { ResiduoForm, UsuarioForm } from "./AdministracionForm";
 export { NavAdministracion } from "./NavAdministracion";

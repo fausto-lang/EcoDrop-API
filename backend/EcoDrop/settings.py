@@ -31,8 +31,6 @@ ALLOWED_HOSTS = [
     "192.168.1.50"
 ]
 
-AUTH_USER_MODEL = 'users.User'
-
 
 # Application definition
 
@@ -43,10 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
     'corsheaders',
     'residuos',
-    'contabilidad'
+    'contabilidad',
+    'usuarios'
 ]
 
 MIDDLEWARE = [

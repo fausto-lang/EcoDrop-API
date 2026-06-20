@@ -1,10 +1,10 @@
 import { useState } from "react";
-import style from "./AdministracionPage.module.css";
-import { useResiduos } from "../../hooks/useResiduos";
-import { ResiduoCard, ResiduoForm, NavAdministracion } from "../../components";
+import style from "./AdministracionResiduos.module.css";
+import { useAdministracion } from "../../hooks/useAdministracion";
+import { ResiduoCard, ResiduoForm } from "../../components";
 
-export function AdministracionPage() {
-  const { residuos, crear, actualizar, eliminar } = useResiduos();
+export function AdministracionResiduos() {
+  const { datos, crear, actualizar, eliminar } = useAdministracion("residuos");
 
   const [modal, setModal] = useState(false);
   const [editarId, setEditarId] = useState(null);
@@ -23,6 +23,7 @@ export function AdministracionPage() {
       precio_por_kilo: "",
       reciclable: false,
     });
+
     setEditarId(null);
     setModal(true);
   };
@@ -48,7 +49,6 @@ export function AdministracionPage() {
 
   return (
     <div className={style.container}>
-      <NavAdministracion />
       <header>
         <section>
           <h1 className={style.title}>Administrar Residuos</h1>
@@ -65,7 +65,7 @@ export function AdministracionPage() {
       </header>
 
       <section className={style.cards}>
-        {residuos.map((r) => (
+        {(datos || []).map((r) => (
           <ResiduoCard
             key={r.id}
             residuo={r}

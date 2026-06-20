@@ -1,9 +1,9 @@
-import json
+""" import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Sum
 from datetime import date
-from .models import User, contabilidad, residuo
+from .models import Usuario, contabilidad, Residuo
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -15,8 +15,8 @@ def registrar_contabilidad(request):
             usuario_id = data.get('usuario')
             residuo_id = data.get('tipo_residuo')
             kilos = float(data.get('kilos'))
-            usuario = User.objects.get(id=usuario_id)
-            residuo = residuo.objects.get(id=residuo_id)
+            usuario = Usuario.objects.get(id=usuario_id)
+            residuo = Residuo.objects.get(id=residuo_id)
             ganancia = kilos * float(residuo.precio_por_kilo)
 
             nuevo_registro = contabilidad(
@@ -32,7 +32,7 @@ def registrar_contabilidad(request):
                 "ganancia_calculada": ganancia
             }, status=201)
 
-        except User.DoesNotExist:
+        except Usuario.DoesNotExist:
             return JsonResponse({"error": "El usuario no existe."}, status=404)
         except residuo.DoesNotExist:
             return JsonResponse({"error": "El tipo de residuo no existe."}, status=404)
@@ -44,7 +44,7 @@ def registrar_contabilidad(request):
 
 def contabilidad_diaria(request, user_id):
     try:
-        usuario = User.objects.get(id=user_id)
+        usuario = Usuario.objects.get(id=user_id)
         hoy = date.today()
         contabilidad_hoy = contabilidad.objects.filter(
             usuario=usuario, fecha=hoy)
@@ -73,12 +73,12 @@ def contabilidad_diaria(request, user_id):
         }
 
         return JsonResponse(respuesta)
-    except User.DoesNotExist:
+    except Usuario.DoesNotExist:
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
 
 def ranking_recicladores(request):
-    ususarios = User.objects.all()
+    ususarios = Usuario.objects.all()
     ranking = []
     for usuario in ususarios:
         total_kilos = contabilidad.objects.filter(
@@ -127,3 +127,4 @@ def estadisticas_grafico(request):
         "grafica": categorias
     }
     return JsonResponse(respuesta)
+ """

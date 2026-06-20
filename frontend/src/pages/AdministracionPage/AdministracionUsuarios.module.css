@@ -1,0 +1,152 @@
+.container {
+  padding: 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.btn__add {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #00e699;
+  color: #000000;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn__add:hover {
+  background-color: #00cc88;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.card_row {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.user_info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.user_id {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin: 0;
+  min-width: 45px;
+}
+
+.user_title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user_metric {
+  display: flex;
+  align-items: baseline;
+  min-width: 80px;
+  justify-content: flex-end;
+}
+
+.card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card__unit {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  margin-left: 0.1rem;
+}
+
+.card__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn_action {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.45rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn_action span {
+  font-size: 1.1rem;
+}
+
+.btn_edit {
+  color: #047857;
+}
+
+.btn_edit:hover {
+  background-color: #f0fdf4;
+  border-color: #a7f3d0;
+}
+
+.btn_delete {
+  color: #ef4444;
+}
+
+.btn_delete:hover {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}

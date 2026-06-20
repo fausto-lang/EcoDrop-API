@@ -1,7 +1,13 @@
+import uuid
 from django.db import models
 
 
 class Residuo(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     tipo = models.CharField(max_length=50)
     descripcion = models.TextField(blank=True)
     precio_por_kilo = models.DecimalField(max_digits=10, decimal_places=2)

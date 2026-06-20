@@ -1,7 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { LayoutPrincipal, LayoutAdministracion } from "../layouts";
-import { ContabilidadPage, RankingPage, ClasificacionPage } from "../pages";
+import {
+  ContabilidadPage,
+  RankingPage,
+  ClasificacionPage,
+  AdministracionResiduos,
+  AdministracionUsuarios,
+} from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -18,11 +24,11 @@ export const router = createBrowserRouter([
         children: [
           {
             path: "residuos",
-            element: <h1>Adios mundo</h1>,
+            element: <AdministracionResiduos />,
           },
           {
             path: "usuarios",
-            element: <h1>Hola mundo</h1>,
+            element: <AdministracionUsuarios />,
           },
         ],
       },

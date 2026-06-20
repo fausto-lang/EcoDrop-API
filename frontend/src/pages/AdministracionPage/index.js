@@ -1,1 +1,2 @@
-export { AdministracionPage } from "./AdministracionPage";
+export { AdministracionUsuarios } from "./AdministracionUsuarios";
+export { AdministracionResiduos } from "./AdministracionResiduos";
