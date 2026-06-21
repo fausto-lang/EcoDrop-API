@@ -1,11 +1,10 @@
-""" import json
+import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db.models import Sum
 from datetime import date
-from .models import Usuario, contabilidad, Residuo
+from .models import Usuario, Contabilidad, Residuo
 from django.views.decorators.csrf import csrf_exempt
-
 
 @csrf_exempt
 def registrar_contabilidad(request):
@@ -19,7 +18,7 @@ def registrar_contabilidad(request):
             residuo = Residuo.objects.get(id=residuo_id)
             ganancia = kilos * float(residuo.precio_por_kilo)
 
-            nuevo_registro = contabilidad(
+            nuevo_registro = Contabilidad(
                 usuario=usuario,
                 tipo_residuo=residuo,
                 kilos=kilos,
@@ -46,7 +45,7 @@ def contabilidad_diaria(request, user_id):
     try:
         usuario = Usuario.objects.get(id=user_id)
         hoy = date.today()
-        contabilidad_hoy = contabilidad.objects.filter(
+        contabilidad_hoy = Contabilidad.objects.filter(
             usuario=usuario, fecha=hoy)
         total_kilos = 0.0
         total_ganancia = 0.0
@@ -59,8 +58,6 @@ def contabilidad_diaria(request, user_id):
             if tipo_residuo not in separado_residuos:
                 separado_residuos[tipo_residuo] = 0.0
             separado_residuos[tipo_residuo] += registro.kilos
-        else:
-            separado_residuos[tipo_residuo] = registro.kilos
 
         respuesta = {
             'usuario': usuario.username,
@@ -78,53 +75,43 @@ def contabilidad_diaria(request, user_id):
 
 
 def ranking_recicladores(request):
-    ususarios = Usuario.objects.all()
-    ranking = []
-    for usuario in ususarios:
-        total_kilos = contabilidad.objects.filter(
-            usuario=usuario).aggregate(Sum('kilos'))['kilos__sum'] or 0
+   usuarios_top = Usuario.objects.order_by('-total_reciclado')[:10]
+   ranking = []
+   
+   for usuario in usuarios_top:
         ranking.append({
-            'username': usuario.username,
-            'total_kilos': total_kilos})
+            'nombre': usuario.nombre,  # Tu amigo usó 'nombre' y no 'username'
+            'total_kilos': float(usuario.total_reciclado) 
+        })
 
-    ordenado = sorted(ranking, key=lambda x: x['total_kilos'], reverse=True)
-    return JsonResponse({"ranking": ordenado[:10]})
+   return JsonResponse({"ranking": ranking})
 
 
 def estadisticas_grafico(request):
     hoy = date.today()
-    total_kilos = contabilidad.objects.filter(
-        fecha=hoy).aggregate(Sum('kilos'))['kilos__sum'] or 0
-    total_ganancia = contabilidad.objects.aggregate(Sum('ganancia_obtenida'))[
-        'ganancia_obtenida__sum'] or 0
 
-    kilos_hoy = contabilidad.objects.filter(
-        fecha=hoy).aggregate(Sum('kilos'))['kilos__sum'] or 0
-    kilos_mes = contabilidad.objects.filter(
-        fecha__month=hoy.month).aggregate(Sum('kilos'))['kilos__sum'] or 0
+    registros_mes = Contabilidad.objects.filter(fecha__month=hoy.month, fecha__year=hoy.year)
+    ingresos_mes = registros_mes.filter(tipo_movimiento='INGRESO').aggregate(Sum('kilos'))['kilos__sum'] or 0
+    ventas_mes = registros_mes.filter(tipo_movimiento='VENTA').aggregate(Sum('kilos'))['kilos__sum'] or 0
+    mermas_mes = registros_mes.filter(tipo_movimiento='MERMA').aggregate(Sum('kilos'))['kilos__sum'] or 0
+    ganancia_mes = registros_mes.filter(tipo_movimiento='VENTA').aggregate(Sum('ganancia_obtenida'))['ganancia_obtenida__sum'] or 0
 
-    regristris = contabilidad.objects.all()
-    categorias = {}
-    for registro in regristris:
-        tipo_residuo = registro.tipo_residuo.nombre
-        if tipo_residuo in categorias:
-            categorias[tipo_residuo]['kilos'] += registro.kilos
-            categorias[tipo_residuo]['ganancia'] += registro.ganancia_obtenida
-        else:
-            categorias[tipo_residuo] = {
-                'kilos': registro.kilos,
-                'ganancia': registro.ganancia_obtenida
-            }
+    registros_hoy = Contabilidad.objects.filter(fecha=hoy)
+    ingresos_hoy = registros_hoy.filter(tipo_movimiento='INGRESO').aggregate(Sum('kilos'))['kilos__sum'] or 0
+    ventas_hoy = registros_hoy.filter(tipo_movimiento='VENTA').aggregate(Sum('kilos'))['kilos__sum'] or 0
+
     respuesta = {
-        "control": {
-            "total_kilos": total_kilos,
-            "total_ganancia": total_ganancia,
+        "mes_actual": {
+            "ingresados_kg": float(ingresos_mes),
+            "vendidos_kg": float(ventas_mes),
+            "perdidos_kg": float(mermas_mes),
+            "ganancia_total": float(ganancia_mes)
         },
-        "comparacion": {
-            "recoleccion_hoy": kilos_hoy,
-            "recolectados_del_mes": kilos_mes
-        },
-        "grafica": categorias
+        "hoy": {
+            "ingresados_kg": float(ingresos_hoy),
+            "vendidos_kg": float(ventas_hoy)
+        }
     }
+    
     return JsonResponse(respuesta)
- """
+
