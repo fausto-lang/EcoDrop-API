@@ -1,7 +1,7 @@
 /* Contenedor principal de la página */
 .pageContainer {
   padding: 40px 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f9fa;
   min-height: 100vh;
   display: flex;
@@ -63,11 +63,6 @@
   transition: background-color 0.2s ease;
 }
 
-/* Efecto hover al pasar el ratón por encima de las filas ordinarias */
-.table tbody tr:hover {
-  background-color: #fafd9a;
-}
-
 .firstPlace {
   background-color: #e8f5e9 !important; /* Verde menta muy suave */
 }
@@ -76,15 +71,15 @@
 }
 
 .secondPlace {
-  background-color: #f1f8e9 !important; /* Verde oliva claro */
+  background-color: #f1f8e9 !important;
 }
 .secondPlace td {
   color: #33691e;
 }
 
 .thirdPlace {
-  background-color: #f9fbe7 !important; /* Verde lima pastel */
+  background-color: #f9fbe7 !important;
 }
 .thirdPlace td {
-  color: #4a148c; /* Toque distintivo para resaltar el bronce */
+  color: #4a148c;
 }

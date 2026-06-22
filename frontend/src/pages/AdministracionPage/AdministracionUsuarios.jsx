@@ -37,6 +37,7 @@ export function AdministracionUsuarios() {
     setModal(false);
     setEditarId(null);
   };
+
   return (
     <div className={style.container}>
       <header className={style.header}>
@@ -47,11 +48,7 @@ export function AdministracionUsuarios() {
           </p>
         </section>
 
-        <button
-          onClick={() => {}}
-          className={style.btn__add}
-          onClick={abrirCrear}
-        >
+        <button className={style.btn__add} onClick={abrirCrear}>
           <span className="material-symbols-outlined">add</span>
           Añadir
         </button>

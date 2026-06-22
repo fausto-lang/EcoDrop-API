@@ -1,13 +1,13 @@
 import axios from "axios";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import style from "./RankingPage.module.css"; 
+import style from "./RankingPage.module.css";
 export function RankingPage() {
-
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
-      axios.get("http://127.0.0.1:8000/api/contabilidad/ranking/")
+    axios
+      .get("http://127.0.0.1:8000/api/usuarios/ranking/")
       .then((respuesta) => {
         setUsuarios(respuesta.data.ranking || []);
       })
@@ -27,7 +27,9 @@ export function RankingPage() {
     <div className={style.pageContainer}>
       <header>
         <h1 className={style.title}>Top Recicladores</h1>
-        <p className={style.subtitle}>Descubre a los usuarios con mayor impacto ambiental</p>
+        <p className={style.subtitle}>
+          Descubre a los usuarios con mayor impacto ambiental
+        </p>
       </header>
 
       <div className={style.tableWrapper}>
@@ -41,15 +43,21 @@ export function RankingPage() {
           </thead>
           <tbody>
             {usuarios.map((user, index) => (
-            <tr key={user.id} className={getPodiumClass(index)}>
-              <td style={{ fontWeight: "bold" }}>
-                {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}
-               </td>
-              <td>{user.username}</td>
+              <tr key={user.id} className={getPodiumClass(index)}>
+                <td style={{ fontWeight: "bold" }}>
+                  {index === 0
+                    ? "🥇"
+                    : index === 1
+                      ? "🥈"
+                      : index === 2
+                        ? "🥉"
+                        : `#${index + 1}`}
+                </td>
+                <td>{user.nombre}</td>
                 <td style={{ fontWeight: "bold", color: "#2d6a4f" }}>
-                {user.total_kilos} kg
-              </td>
-            </tr>
+                  {user.total_kilos} kg
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>

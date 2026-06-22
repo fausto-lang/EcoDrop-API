@@ -67,24 +67,20 @@ export function ClasificacionPage() {
       }
 
       const kg = parseFloat(cantidadKg);
-      const nuevoStock = parseFloat(categoriaSeleccionada.stock_kg || 0) + kg;
 
-      await axios.put(
-        `http://127.0.0.1:8000/api/residuos/${categoriaSeleccionada.id}/`,
-        {
-          tipo: categoriaSeleccionada.tipo,
-          descripcion: categoriaSeleccionada.descripcion,
-          precio_por_kilo: categoriaSeleccionada.precio_por_kilo,
-          stock_kg: nuevoStock,
-          reciclable: categoriaSeleccionada.reciclable,
-        },
-      );
+      await axios.post("http://127.0.0.1:8000/api/contabilidad/movimiento/", {
+        usuario_id: usuarioSeleccionado,
+        residuo_id: categoriaSeleccionada.id,
+        kilos: kg,
+      });
+
+      // Actualizar total_reciclado del usuario
       const nuevoTotalUsuario = parseFloat(usuario.total_reciclado || 0) + kg;
-
       await axios.put(`http://127.0.0.1:8000/api/usuarios/${usuario.id}/`, {
         nombre: usuario.nombre,
         total_reciclado: nuevoTotalUsuario,
       });
+
       const [usuariosRes, residuosRes] = await Promise.all([
         axios.get("http://127.0.0.1:8000/api/usuarios/"),
         axios.get("http://127.0.0.1:8000/api/residuos/"),
@@ -97,7 +93,6 @@ export function ClasificacionPage() {
         `Se registraron ${kg} Kg de ${categoriaSeleccionada.tipo} para ${usuario.nombre}`,
       );
 
-      // RESET
       setUsuarioSeleccionado("");
       setCantidadKg("");
       setPrecioTotal(0);

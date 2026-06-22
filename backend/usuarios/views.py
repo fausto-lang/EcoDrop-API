@@ -97,3 +97,31 @@ def detalle_usuario(request, id):
     return JsonResponse({
         "error": "Método no permitido"
     }, status=405)
+
+
+def ranking_recicladores(request):
+    try:
+        usuarios = (
+            Usuario.objects
+            .order_by('-total_reciclado')[:5]
+        )
+
+        data = [
+            {
+                "id": str(u.id),
+                "nombre": u.nombre,
+                "total_kilos": float(u.total_reciclado)
+            }
+            for u in usuarios
+        ]
+
+        return JsonResponse({"ranking": data}, safe=False)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+
+        return JsonResponse({
+            "error": str(e),
+            "detalle": traceback.format_exc()
+        }, status=500)

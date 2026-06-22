@@ -121,11 +121,21 @@ def detalle_residuo(request, id):
             }, status=400)
 
     if request.method == "DELETE":
-        residuo.delete()
+        try:
+            residuo.delete()
 
-        return JsonResponse({
-            "mensaje": "Residuo eliminado correctamente"
-        })
+            return JsonResponse({
+                "mensaje": "Residuo eliminado correctamente"
+            })
+
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())
+
+            return JsonResponse({
+                "error": str(e),
+                "detalle": traceback.format_exc()
+            }, status=500)
 
     return JsonResponse({
         "error": "Método no permitido"
