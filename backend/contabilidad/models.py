@@ -17,7 +17,7 @@ class Contabilidad(models.Model):
     kilos = models.DecimalField(max_digits=10, decimal_places=2)
     ganancia_obtenida = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     fecha = models.DateField(default=timezone.now) 
-    
+
     def __str__(self):
         return f"{self.tipo_movimiento} | {self.kilos}kg - {self.tipo_residuo.tipo}"
 
