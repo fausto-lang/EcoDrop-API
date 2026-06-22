@@ -61,7 +61,7 @@ def registrar_movimiento(request):
             kilos = float(body.get("kilos", 0))
             residuo = Residuo.objects.get(id=residuo_id)
             precio = float(getattr(residuo, 'precio_por_kilo', 0))
-            ganancia = kilos * precio
+            ganancia = 0
 
             nuevo_registro = Contabilidad.objects.create(
                 usuario_id=usuario_id,

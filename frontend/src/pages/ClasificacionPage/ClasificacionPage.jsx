@@ -74,7 +74,6 @@ export function ClasificacionPage() {
         kilos: kg,
       });
 
-      // Actualizar total_reciclado del usuario
       const nuevoTotalUsuario = parseFloat(usuario.total_reciclado || 0) + kg;
       await axios.put(`http://127.0.0.1:8000/api/usuarios/${usuario.id}/`, {
         nombre: usuario.nombre,
@@ -88,18 +87,12 @@ export function ClasificacionPage() {
 
       setUsuarios(usuariosRes.data);
       setCategorias(residuosRes.data);
-
-      alert(
-        `Se registraron ${kg} Kg de ${categoriaSeleccionada.tipo} para ${usuario.nombre}`,
-      );
-
       setUsuarioSeleccionado("");
       setCantidadKg("");
       setPrecioTotal(0);
       setCategoriaSeleccionada(null);
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.error || "Error al registrar reciclaje");
     }
   };
 

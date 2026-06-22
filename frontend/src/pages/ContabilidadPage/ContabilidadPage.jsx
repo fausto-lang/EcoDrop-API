@@ -77,7 +77,6 @@ export function ContabilidadPage() {
         precio_venta: precioVenta,
       })
       .then((res) => {
-        alert(res.data.mensaje);
         setResiduoSeleccionado("");
         setPrecioVenta("");
         cargarEstadisticas();
@@ -86,7 +85,6 @@ export function ContabilidadPage() {
       .catch((err) => {
         const msgErr =
           err.response?.data?.error || "Error al registrar la venta";
-        alert(msgErr);
       })
       .finally(() => setCargandoVenta(false));
   };
