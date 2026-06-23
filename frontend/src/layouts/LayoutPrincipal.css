@@ -108,6 +108,8 @@
 
 .contenido-principal {
   width: 80vw;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .active a {

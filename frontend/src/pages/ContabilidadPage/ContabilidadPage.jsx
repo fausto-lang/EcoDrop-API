@@ -1,149 +1,368 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { obtenerEstadisticas } from "../../services/contabilidadService";
-import "./ContabilidadPage.css";
+import "./contabilidadPage.css";
 
-const ContabilidadPage = () => {
-    // --- ESTADOS PARA EL FORMULARIO ---
-    const [usuarioId, setUsuarioId] = useState("");
-    const [residuoId, setResiduoId] = useState("");
-    const [kilos, setKilos] = useState("");
+export function ContabilidadPage() {
+  const [totales, setTotales] = useState({
+    kilos_hoy: 0,
+    kilos_mes: 0,
+    reciclado_mes: 0,
+    perdidas_mes: 0,
+    ganancia_mes: 0,
+  });
 
-    // --- NUEVOS ESTADOS PARA LAS LISTAS DESPLEGABLES ---
-    const [listaUsuarios, setListaUsuarios] = useState([]);
-    const [listaResiduos, setListaResiduos] = useState([]);
+  const [vistaGrafico, setVistaGrafico] = useState("hoy");
+  const [datosGrafico, setDatosGrafico] = useState({ hoy: [], mes: [] });
+  const [entregasHoy, setEntregasHoy] = useState([]);
+  const [residuosDisponibles, setResiduosDisponibles] = useState([]);
+  const [residuoSeleccionado, setResiduoSeleccionado] = useState("");
+  const [precioVenta, setPrecioVenta] = useState("");
+  const [cargandoVenta, setCargandoVenta] = useState(false);
 
-    // --- ESTADOS PARA LAS ESTADÍSTICAS ---
-    const [estadisticas, setEstadisticas] = useState(null);
-    const [cargando, setCargando] = useState(true);
-
-    // Función para cargar las estadísticas
-    const cargarDatos = async () => {
-        setCargando(true);
-        const datos = await obtenerEstadisticas();
-        if (datos) {
-            setEstadisticas(datos);
-        }
-        setCargando(false);
-    };
-
-    // ¡AQUÍ ESTÁ EL FAMOSO useEffect!
-    // Esto se ejecuta una sola vez cuando abres la página
-    useEffect(() => {
-        cargarDatos(); // Carga las tarjetas
-
-        // Traer lista de usuarios del backend
-        axios.get("http://127.0.0.1:8000/api/usuarios/")
-            .then(respuesta => setListaUsuarios(respuesta.data))
-            .catch(error => console.error("Error al traer usuarios:", error));
-
-        // Traer lista de residuos del backend
-        axios.get("http://127.0.0.1:8000/api/residuos/")
-            .then(respuesta => setListaResiduos(respuesta.data))
-            .catch(error => console.error("Error al traer residuos:", error));
-    }, []);
-
-    // Función para enviar el formulario
-    const enviarDatos = (e) => {
-        e.preventDefault();
-        
-        axios.post("http://127.0.0.1:8000/api/contabilidad/registrar/", {
-            usuario: usuarioId,
-            tipo_residuo: residuoId,
-            kilos: parseFloat(kilos),
-        })
-        .then((respuesta) => {
-            alert("¡Registro guardado con éxito! ♻️");
-            setUsuarioId("");
-            setResiduoId("");
-            setKilos("");
-            cargarDatos(); // Actualiza las estadísticas
-        })
-        .catch((error) => {
-            console.error("Hubo un error al guardar:", error);
-            alert("Error al guardar. Revisa la consola.");
+  const cargarEstadisticas = () => {
+    axios
+      .get("http://127.0.0.1:8000/api/contabilidad/estadisticas/")
+      .then((response) => {
+        const datosDjango = response.data;
+        setTotales({
+          kilos_hoy: datosDjango.hoy.ingresados_kg,
+          kilos_mes: datosDjango.mes_actual.ingresados_kg,
+          reciclado_mes: datosDjango.mes_actual.vendidos_kg,
+          ganancia_mes: datosDjango.mes_actual.ganancia_total,
         });
-    };
 
-    if (cargando && !estadisticas) {
-        return <div style={{ color: 'var(--marca-principal)', textAlign: 'center', padding: '50px' }}>Cargando contabilidad...</div>;
+        if (datosDjango.entregas_hoy) {
+          setEntregasHoy(datosDjango.entregas_hoy);
+        }
+      })
+      .catch((error) => console.error("Error al cargar estadísticas:", error));
+  };
+
+  const cargarResiduosInventario = () => {
+    axios
+      .get("http://127.0.0.1:8000/api/residuos/")
+      .then((response) => {
+        setResiduosDisponibles(response.data);
+        const datosDesdeInventario = response.data.map((residuo) => ({
+          residuo__nombre: residuo.tipo,
+          total: parseFloat(residuo.stock_kg) || 0,
+        }));
+
+        setDatosGrafico({
+          hoy: datosDesdeInventario,
+          mes: datosDesdeInventario,
+        });
+      })
+      .catch((error) =>
+        console.error("Error al cargar residuos para la gráfica:", error),
+      );
+  };
+
+  useEffect(() => {
+    cargarEstadisticas();
+    cargarResiduosInventario();
+  }, []);
+
+  const handleRegistrarVenta = (e) => {
+    e.preventDefault();
+    if (!residuoSeleccionado || !precioVenta) {
+      alert("Por favor, selecciona un material y define un precio de venta.");
+      return;
     }
 
-    return (
-        <div className="contabilidad-container" style={{ padding: '20px', backgroundColor: 'var(--fondo-aplicacion)', minHeight: '100vh' }}>
-            <h1 style={{ color: 'var(--marca-oscura)', marginBottom: '20px' }}>Gestión de Contabilidad</h1>
+    setCargandoVenta(true);
+    axios
+      .post("http://127.0.0.1:8000/api/contabilidad/vender/", {
+        residuo_id: residuoSeleccionado,
+        precio_venta: precioVenta,
+      })
+      .then((res) => {
+        setResiduoSeleccionado("");
+        setPrecioVenta("");
+        cargarEstadisticas();
+        cargarResiduosInventario();
+      })
+      .catch((err) => {
+        const msgErr =
+          err.response?.data?.error || "Error al registrar la venta";
+      })
+      .finally(() => setCargandoVenta(false));
+  };
 
-            {/* --- FORMULARIO CON MENÚS DESPLEGABLES --- */}
-            <div style={{ backgroundColor: 'var(--fondo-blanco)', padding: '20px', borderRadius: '8px', border: '1px solid var(--color-borde)', marginBottom: '30px' }}>
-                <h2 style={{ color: 'var(--texto-principal)', marginBottom: '15px' }}>Registrar Nuevo Movimiento</h2>
-                <form onSubmit={enviarDatos} style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    
-                    {/* Select de Usuario */}
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '200px' }}>
-                        <label style={{ color: 'var(--texto-atenuado)', marginBottom: '5px' }}>Usuario:</label>
-                        <select value={usuarioId} onChange={(e) => setUsuarioId(e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--color-borde)', backgroundColor: 'white' }}>
-                            <option value="">Seleccione un usuario...</option>
-                            {listaUsuarios.map(user => (
-                                <option key={user.id} value={user.id}>
-                                    {user.nombre} {/* Ojo: Si en tu modelo de Django se llama 'username', cambia user.nombre por user.username */}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+  const datosActualesGrafica =
+    vistaGrafico === "hoy" ? datosGrafico.hoy : datosGrafico.mes;
 
-                    {/* Select de Residuo */}
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '200px' }}>
-                        <label style={{ color: 'var(--texto-atenuado)', marginBottom: '5px' }}>Residuo:</label>
-                        <select value={residuoId} onChange={(e) => setResiduoId(e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--color-borde)', backgroundColor: 'white' }}>
-                            <option value="">Seleccione un residuo...</option>
-                            {listaResiduos.map(residuo => (
-                                <option key={residuo.id} value={residuo.id}>
-                                    {residuo.tipo} {/* Ojo: Si en tu modelo se llama 'nombre', cambia residuo.tipo por residuo.nombre */}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Input de Kilos */}
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '100px' }}>
-                        <label style={{ color: 'var(--texto-atenuado)', marginBottom: '5px' }}>Kilos:</label>
-                        <input type="number" step="0.01" value={kilos} onChange={(e) => setKilos(e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--color-borde)' }} />
-                    </div>
-
-                    <button type="submit" style={{ padding: '10px 20px', backgroundColor: 'var(--marca-principal)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', height: '35px' }}>
-                        Guardar
-                    </button>
-                </form>
-            </div>
-
-            {/* --- SECCIÓN DE TARJETAS DE ESTADÍSTICAS --- */}
-            {estadisticas ? (
-                <>
-                    <h2 style={{ color: 'var(--texto-principal)', marginBottom: '15px' }}>Resumen del Mes</h2>
-                    <div className="tarjetas-grid" style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                        <div className="tarjeta" style={{ backgroundColor: 'var(--fondo-blanco)', padding: '20px', borderRadius: '8px', border: '1px solid var(--color-borde)', flex: 1 }}>
-                            <h3 style={{ color: 'var(--texto-atenuado)' }}>Ingresado este Mes</h3>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--texto-principal)' }}>{estadisticas.mes_actual.ingresados_kg} kg</p>
-                        </div>
-                        <div className="tarjeta" style={{ backgroundColor: 'var(--estado-exito-fondo)', padding: '20px', borderRadius: '8px', border: '1px solid var(--color-borde)', flex: 1 }}>
-                            <h3 style={{ color: 'var(--estado-exito-texto)' }}>Reciclado / Vendido</h3>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--estado-exito-texto)' }}>{estadisticas.mes_actual.vendidos_kg} kg</p>
-                        </div>
-                        <div className="tarjeta" style={{ backgroundColor: 'var(--estado-alerta-fondo)', padding: '20px', borderRadius: '8px', border: '1px solid var(--color-borde)', flex: 1 }}>
-                            <h3 style={{ color: 'var(--estado-alerta-texto)' }}>Pérdidas / Mermas</h3>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--estado-alerta-texto)' }}>{estadisticas.mes_actual.perdidos_kg} kg</p>
-                        </div>
-                        <div className="tarjeta" style={{ backgroundColor: 'var(--marca-clara)', padding: '20px', borderRadius: '8px', border: '1px solid var(--marca-principal)', flex: 1 }}>
-                            <h3 style={{ color: 'var(--marca-oscura)' }}>Ganancia del Mes</h3>
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--marca-principal)' }}>Bs. {estadisticas.mes_actual.ganancia_total}</p>
-                        </div>
-                    </div>
-                </>
-            ) : (
-                <div style={{ color: 'var(--estado-alerta-texto)' }}>Esperando estadísticas del backend...</div>
-            )}
+  return (
+    <div className="dashboardContainer">
+      <div className="dashboardHeader">
+        <div>
+          <h1 className="mainTitle">Balance de Recuperación</h1>
+          <p className="subTitle">
+            Seguimiento financiero y operativo de materiales procesados.
+          </p>
         </div>
-    );
-};
+        <br />
+        <br />
+      </div>
 
-export { ContabilidadPage };
+      <div className="kpiGrid">
+        <div className="kpiCard cardVerde">
+          <div className="kpiHeader">
+            <span className="badgeStatus">Hoy</span>
+          </div>
+          <span className="kpiLabel">INGRESADO HOY</span>
+          <h2 className="kpiValue">{totales.kilos_hoy} kg</h2>
+        </div>
+        <div className="kpiCard cardAzul">
+          <div className="kpiHeader">
+            <span className="badgeStatus">Mes</span>
+          </div>
+          <span className="kpiLabel">INGRESADO ESTE MES</span>
+          <h2 className="kpiValue">{totales.kilos_mes} kg</h2>
+        </div>
+        <div className="kpiCard cardAmarilla">
+          <div className="kpiHeader">
+            <span className="badgeStatus positivo">+4.2%</span>
+          </div>
+          <span className="kpiLabel">RECICLADO / VENDIDO</span>
+          <h2 className="kpiValue">{totales.reciclado_mes} kg</h2>
+        </div>
+        <div className="kpiCard cardVerdeOscuro">
+          <div className="kpiHeader">
+            <span className="badgeStatus">Estable</span>
+          </div>
+          <span className="kpiLabel">GANANCIA DEL MES</span>
+          <h2 className="kpiValue">Bs. {totales.ganancia_mes}</h2>
+        </div>
+      </div>
+
+      <div className="dashboardContentGrid">
+        <div className="contentBlock">
+          <div className="blockHeader">
+            <div>
+              <h3>Stock Actual de Materiales</h3>
+              <p className="blockSub">
+                Distribución del peso total acumulado en inventario
+              </p>
+            </div>
+            <div className="filterToggle">
+              <button
+                className={
+                  vistaGrafico === "hoy" ? "toggleItem active" : "toggleItem"
+                }
+                onClick={() => setVistaGrafico("hoy")}
+              >
+                Hoy
+              </button>
+              <button
+                className={
+                  vistaGrafico === "mes" ? "toggleItem active" : "toggleItem"
+                }
+                onClick={() => setVistaGrafico("mes")}
+              >
+                Últimos 30 días
+              </button>
+            </div>
+          </div>
+          <div className="chartVisualArea">
+            {datosActualesGrafica.length === 0 ? (
+              <p className="emptyMessage">
+                No hay residuos registrados en el inventario para graficar.
+              </p>
+            ) : (
+              <div className="barChartContainer">
+                {datosActualesGrafica.map((item, index) => (
+                  <div key={index} className="chartRow">
+                    <span className="labelMaterial">
+                      {item.residuo__nombre}
+                    </span>
+                    <div className="barTrack">
+                      <div
+                        className="barFill"
+                        style={{ width: `${Math.min(item.total * 2, 100)}%` }}
+                      ></div>
+                    </div>
+                    <span className="weightValue">{item.total} kg</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div className="contentBlock miniBlock">
+            <div className="blockHeader">
+              <h3>Ventas del Día</h3>
+              <p className="blockSub">Usuarios que ingresaron materiales hoy</p>
+            </div>
+            <div
+              className="deliveriesContainer"
+              style={{ overflowY: "auto", maxHeight: "300px" }}
+            >
+              {entregasHoy.length === 0 ? (
+                <p
+                  className="emptyMessage"
+                  style={{ textAlign: "center", marginTop: "20px" }}
+                >
+                  No se han registrado entregas el día de hoy.
+                </p>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {entregasHoy.map((entrega, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "10px 14px",
+                        background: "#f8f9fa",
+                        borderRadius: "8px",
+                        borderLeft: "4px solid #28a745",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <div>
+                        <h4
+                          style={{ margin: 0, color: "#333", fontSize: "14px" }}
+                        >
+                          {entrega.usuario_nombre}
+                        </h4>
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            color: "#666",
+                            background: "#e9ecef",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          {entrega.material}
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          fontWeight: "bold",
+                          color: "#28a745",
+                          fontSize: "15px",
+                        }}
+                      >
+                        +{entrega.kilos} kg
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="contentBlock miniBlock">
+            <div className="blockHeader">
+              <h3>Registrar Venta</h3>
+              <p className="blockSub">
+                Despacha el stock acumulado y genera ingresos
+              </p>
+            </div>
+            <form
+              onSubmit={handleRegistrarVenta}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "14px",
+                marginTop: "10px",
+              }}
+            >
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "5px" }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#495057",
+                  }}
+                >
+                  Material:
+                </label>
+                <select
+                  value={residuoSeleccionado}
+                  onChange={(e) => setResiduoSeleccionado(e.target.value)}
+                  style={{
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ced4da",
+                    background: "#fff",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                >
+                  <option value="">Selecciona un material...</option>
+                  {residuosDisponibles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.tipo} ({r.stock_kg} kg)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "5px" }}
+              >
+                <label
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#495057",
+                  }}
+                >
+                  Precio de venta por kg (Bs.):
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Ej: 4.50"
+                  value={precioVenta}
+                  onChange={(e) => setPrecioVenta(e.target.value)}
+                  style={{
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #ced4da",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={cargandoVenta}
+                style={{
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  padding: "10px 14px",
+                  borderRadius: "6px",
+                  border: "none",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  marginTop: "5px",
+                  transition: "background 0.2s",
+                }}
+              >
+                {cargandoVenta
+                  ? "Procesando despacho..."
+                  : "Confirmar y Despachar"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

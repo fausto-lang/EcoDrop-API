@@ -11,13 +11,34 @@ class Contabilidad(models.Model):
         ('PERDIDA', 'Pérdida o desperdicio')
     ]
 
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, null=True, blank=True)
-    tipo_residuo = models.ForeignKey(Residuo, on_delete=models.RESTRICT)
-    tipo_movimiento = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO, default='INGRESO')
-    kilos = models.DecimalField(max_digits=10, decimal_places=2)
-    ganancia_obtenida = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    fecha = models.DateField(default=timezone.now) 
-    
-    def __str__(self):
-        return f"{self.tipo_movimiento} | {self.kilos}kg - {self.tipo_residuo.tipo}"
+    usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
+    tipo_residuo = models.ForeignKey(
+        Residuo,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    tipo_movimiento = models.CharField(
+        max_length=10,
+        choices=TIPO_MOVIMIENTO,
+        default='INGRESO'
+    )
+
+    kilos = models.DecimalField(max_digits=10, decimal_places=2)
+    ganancia_obtenida = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        default=0.00
+    )
+
+    fecha = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        residuo = self.tipo_residuo.tipo if self.tipo_residuo else "Sin residuo"
+        return f"{self.tipo_movimiento} | {self.kilos}kg - {residuo}"

@@ -204,25 +204,22 @@ export function ClasificacionPage() {
       if (!usuario) return alert("Usuario inválido.");
 
       const kg = parseFloat(cantidadKg);
-      const nuevoStock = parseFloat(categoriaSeleccionada.stock_kg || 0) + kg;
 
-      // Actualizar Stock en Residuo
-      await axios.put(`http://127.0.0.1:8000/api/residuos/${categoriaSeleccionada.id}/`, {
-        tipo: categoriaSeleccionada.tipo,
-        descripcion: categoriaSeleccionada.descripcion,
-        precio_por_kilo: categoriaSeleccionada.precio_por_kilo,
-        stock_kg: nuevoStock,
-        reciclable: categoriaSeleccionada.reciclable,
-      });
-
-      // Actualizar Acumulado del Usuario
+      await axios.put(
+        `http://127.0.0.1:8000/api/residuos/${categoriaSeleccionada.id}/`,
+        {
+          tipo: categoriaSeleccionada.tipo,
+          descripcion: categoriaSeleccionada.descripcion,
+          precio_por_kilo: categoriaSeleccionada.precio_por_kilo,
+          stock_kg: nuevoStock,
+          reciclable: categoriaSeleccionada.reciclable,
+        },
+      );
       const nuevoTotalUsuario = parseFloat(usuario.total_reciclado || 0) + kg;
       await axios.put(`http://127.0.0.1:8000/api/usuarios/${usuario.id}/`, {
         nombre: usuario.nombre,
         total_reciclado: nuevoTotalUsuario,
       });
-
-      // Recargar datos actualizados
       const [usuariosRes, residuosRes] = await Promise.all([
         axios.get("http://127.0.0.1:8000/api/usuarios/"),
         axios.get("http://127.0.0.1:8000/api/residuos/"),
@@ -230,13 +227,18 @@ export function ClasificacionPage() {
       setUsuarios(usuariosRes.data);
       setCategorias(residuosRes.data);
 
-      alert(`¡Registro Exitoso! Guardados ${kg} Kg de ${categoriaSeleccionada.tipo} para ${usuario.nombre}.`);
+      alert(
+        `Se registraron ${kg} Kg de ${categoriaSeleccionada.tipo} para ${usuario.nombre}`,
+      );
+
+      // RESET
+      setUsuarioSeleccionado("");
       setCantidadKg("");
       setPrecioTotal(0);
       setCategoriaSeleccionada(null);
     } catch (error) {
       console.error(error);
-      alert("Error al guardar en la base de datos.");
+      alert(error.response?.data?.error || "Error al registrar reciclaje");
     }
   };
 
