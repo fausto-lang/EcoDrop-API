@@ -1,78 +1,107 @@
 import os
 import json
 from Eco_tools.src.ia import inicializar, generar_respuesta
-from Eco_tools.src.gramatica import normalizar_texto, verificar_estructura_basica  
+from residuos.models import Residuo
 
 class AsistenciaInteligenteService:
-    
+
     @staticmethod
-    def clasificar_por_imagen(ruta_imagen_local) -> dict:
+    def clasificar_por_imagen(ruta_image_local) -> dict:
         """
-        Toma la foto enviada desde el frontend
-        y usa el módulo de IA para clasificarla y asignarle un valor.
+        Analiza la imagen y mapea el residuo con los parámetros explícitos de la BD.
+        (Aquí NO se extrae el peso, el usuario lo mete a mano en el frontend)
         """
+        if not os.path.exists(ruta_image_local):
+            return {"error": f"El archivo de imagen no existe: {ruta_image_local}"}
+
+        residuos_db = Residuo.objects.all()
+        
+        mapeo_categorias = {r.tipo.lower().strip(): str(r.id) for r in residuos_db}
+        
+        opciones_explicitas = ", ".join([r.tipo for r in residuos_db])
+
         cliente, modelo = inicializar()
         
         prompt = (
-            "Analiza detalladamente la imagen de este residuo. "
-            "Determina el tipo de material predominante (Plástico, Vidrio, Papel/Cartón, Orgánico o No reciclable) "
-            "y calcula un valor económico estimado o un puntaje aproximado de reciclaje. "
-            "Responde ÚNICAMENTE un objeto JSON con esta estructura exacta, sin bloques de código markdown: "
-            '{"material": "tipo", "valor_estimado": 0.00, "confianza": "alta|media|baja"}'
+            "Analiza detalladamente la imagen de este residuo.\n"
+           f"1. Identifica cuál de las siguientes categorías se menciona: [{opciones_explicitas}]. "
+            "si se trata de algo parecido por ejemplo una botella de vidrio entonces lo asocias al tipo especifico que tienes en las opciones tal cual no le colocas tildes ni nada mas .\n"
+            "Tu respuesta para 'categoria_detectada' debe ser estrictamente una de esas opciones.\n"
+            "escrita exactamente igual.\n\n"
+            "Responde ÚNICAMENTE un objeto JSON con la estructura exacta, sin bloques markdown:\n"
+            '{"categoria_detectada": "nombre_de_la_categoria"}'
         )
         
-        resultado = generar_respuesta(cliente, modelo, prompt, archivos=[ruta_imagen_local])
+        resultado = generar_respuesta(cliente, modelo, prompt, archivos=[ruta_image_local])
         
         if resultado["estado"] == "success":
             try:
-                texto_limpio = resultado["texto"].replace("```json", "").replace("```", "").strip()
-                return json.loads(texto_limpio)
-            except json.JSONDecodeError:
-                return {
-                    "material": "No identificado",
-                    "valor_estimado": 0.0,
-                    "error_parsing": "La IA no devolvió un JSON válido",
-                    "raw_text": resultado["texto"]
-                }
+                raw_text = resultado.get("texto") or resultado.get("text") or ""
+                texto_limpio = raw_text.replace("```json", "").replace("```", "").strip()
+                ans_json = json.loads(texto_limpio)
+                
+                detectado = ans_json.get("categoria_detectada", "").lower().strip()
+                residuo_id = mapeo_categorias.get(detectado)
+                
+                if residuo_id:
+                    return {"residuo_id": residuo_id}
+                else:
+                    return {"error": f"La IA detectó '{ans_json.get('categoria_detectada')}', pero no coincide exactamente con tus categorías predefinidas."}
+            except Exception:
+                return {"error_parsing": "Error al parsear el JSON de la IA."}
         else:
-            return {"error": f"Error en el módulo de IA: {resultado['errores']}"}
+            return {"error": f"Error en la IA: {resultado.get('error')}"}
+
 
     @staticmethod
     def clasificar_por_voz(ruta_audio_local) -> dict:
         """
-        Recibe el archivo de audio grabado desde el micrófono del navegador frontend.
-        Usa la IA multimodal de pibble para escuchar el audio, identificar el residuo mencionado,
-        evaluar si contiene muletillas e imprecisiones, y retornar los datos limpios.
+        Analiza el audio y detecta de forma explícita el tipo de residuo Y el peso (cantidad_kg)
+        basándose en los parámetros de la base de datos.
         """
+        if not os.path.exists(ruta_audio_local):
+            return {"error": f"El archivo de audio no existe: {ruta_audio_local}"}
+
+        residuos_db = Residuo.objects.all()
+        
+        mapeo_categorias = {r.tipo.lower().strip(): str(r.id) for r in residuos_db}
+        
+        opciones_explicitas = ", ".join([r.tipo for r in residuos_db])
+
         cliente, modelo = inicializar()
         
         prompt = (
-            "Escucha atentamente el audio adjunto donde el usuario menciona un objeto a reciclar. "
-            "1. Transcribe lo que dice.\n"
-            "2. Analiza si el usuario usa muletillas de duda (ej. 'ehh', 'mmm', 'este', 'bueno...').\n"
-            "3. Clasifica el objeto en una categoría de reciclaje y asígnale un valor estimado.\n"
-            "Devuelve la respuesta ÚNICAMENTE en este formato JSON estricto:\n"
-            '{"texto_original": "transcripción completa", '
-            '"tiene_muletillas": true|false, '
-            '"material": "Plástico|Vidrio|Cartón|Orgánico|No reciclable", '
-            '"valor_estimado": 0.00}'
+            "Escucha atentamente el audio adjunto donde el usuario menciona un residuo y su peso.\n"
+            f"1. Identifica cuál de las siguientes categorías se menciona: [{opciones_explicitas}]. "
+            "si se trata de algo parecido por ejemplo una botella de vidrio entonces lo asocias al tipo especifico que tienes en las opciones tal cual no le colocas tildes ni nada mas .\n"
+            "Tu respuesta para 'categoria_detectada' debe ser estrictamente una de esas opciones.\n"
+            "2. Extrae la cantidad numérica de peso mencionada en kilogramos.\n\n"
+            "Responde ÚNICAMENTE un objeto JSON con la estructura exacta, sin bloques markdown:\n"
+            '{"categoria_detectada": "nombre_de_la_categoria", "cantidad_kg": 0.00}'
         )
         
         resultado = generar_respuesta(cliente, modelo, prompt, archivos=[ruta_audio_local])
         
         if resultado["estado"] == "success":
             try:
-                texto_limpio = resultado["texto"].replace("```json", "").replace("```", "").strip()
-                data_ia = json.loads(texto_limpio)
+                raw_text = resultado.get("texto") or resultado.get("text") or ""
+                texto_limpio = raw_text.replace("```json", "").replace("```", "").strip()
+                ans_json = json.loads(texto_limpio)
                 
-                texto_transcrito = data_ia.get("texto_original", "")
-                data_ia["analisis_texto_base"] = normalizar_texto(texto_transcrito)
+                detectado = ans_json.get("categoria_detectada", "").lower().strip()
+                residuo_id = mapeo_categorias.get(detectado)
                 
-                return data_ia
-            except json.JSONDecodeError:
-                return {
-                    "error_parsing": "La IA no estructuró la respuesta de voz en JSON",
-                    "raw_text": resultado["texto"]
-                }
+                if residuo_id:
+                    respuesta_voz = {"residuo_id": residuo_id}
+                    try:
+                        respuesta_voz["cantidad_kg"] = float(ans_json.get("cantidad_kg", 0.0))
+                    except (ValueError, TypeError):
+                        respuesta_voz["cantidad_kg"] = "" 
+                    
+                    return respuesta_voz
+                else:
+                    return {"error": f"La IA detectó '{ans_json.get('categoria_detectada')}', pero no coincide exactamente con tus categorías predefinidas."}
+            except Exception:
+                return {"error_parsing": "Error al parsear el JSON de la IA."}
         else:
-            return {"error": f"Error procesando audio con IA: {resultado['errores']}"}
+            return {"error": f"Error en la IA: {resultado.get('error')}"}
