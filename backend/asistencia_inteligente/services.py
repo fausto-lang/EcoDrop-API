@@ -1,6 +1,6 @@
 import os
 import json
-from Eco_tools.src.ia import inicializar, generar_respuesta
+from Eco_tools_lib.src.ia import inicializar, generar_respuesta
 from residuos.models import Residuo
 
 
