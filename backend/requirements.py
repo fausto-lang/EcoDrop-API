@@ -1,0 +1,15 @@
+django
+djangorestframework
+django-cors-headers
+google-genai
+python-dotenv
+pillow
+python-magic-bin
+pyttsx3
+pydub
+sounddevice
+soundfile
+SpeechRecognition
+numpy
+pytest
+requests

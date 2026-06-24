@@ -12,6 +12,59 @@ export function ClasificacionPage() {
 
   const [cantidadKg, setCantidadKg] = useState("");
   const [precioTotal, setPrecioTotal] = useState(0);
+  const [imagen, setImagen] = useState(null);
+  const [analizando, setAnalizando] = useState(false); // ← nuevo estado
+
+  const enviarImagen = async () => {
+    if (!imagen) return alert("No hay imagen");
+
+    const formData = new FormData();
+    formData.append("imagen", imagen);
+
+    setAnalizando(true); // ← empieza a cargar
+
+    try {
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/clasificar/imagen/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+
+      const { residuo_id, error } = res.data;
+
+      if (error) {
+        return alert(`La IA no pudo clasificar: ${error}`);
+      }
+
+      if (!residuo_id) {
+        return alert("La IA no devolvió una categoría válida.");
+      }
+
+      const categoriaDetectada = categorias.find(
+        (c) => String(c.id) === String(residuo_id),
+      );
+
+      if (!categoriaDetectada) {
+        return alert("La categoría detectada no existe en el sistema.");
+      }
+
+      setImagen(null);
+      setUsuarioSeleccionado("");
+      setCantidadKg("");
+      setPrecioTotal(0);
+      setCategoriaSeleccionada(categoriaDetectada);
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "Error al conectar con la IA.");
+    } finally {
+      setAnalizando(false); // ← termina de cargar siempre
+    }
+  };
+
+  const handleSeleccionarImagen = (e) => {
+    const file = e.target.files[0];
+    if (file) setImagen(file);
+  };
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -20,7 +73,6 @@ export function ClasificacionPage() {
           axios.get("http://127.0.0.1:8000/api/usuarios/"),
           axios.get("http://127.0.0.1:8000/api/residuos/"),
         ]);
-
         setUsuarios(usuariosRes.data);
         setCategorias(residuosRes.data);
       } catch (error) {
@@ -29,7 +81,6 @@ export function ClasificacionPage() {
         setLoading(false);
       }
     };
-
     cargarDatos();
   }, []);
 
@@ -62,9 +113,7 @@ export function ClasificacionPage() {
         (u) => String(u.id) === String(usuarioSeleccionado),
       );
 
-      if (!usuario) {
-        return alert("Usuario no encontrado.");
-      }
+      if (!usuario) return alert("Usuario no encontrado.");
 
       const kg = parseFloat(cantidadKg);
 
@@ -109,36 +158,81 @@ export function ClasificacionPage() {
 
         <div className={style.bentoGrid}>
           <div className={style.cardImage}>
-            <div className={style.iconCircle}>
-              <span className="material-symbols-outlined">add_a_photo</span>
-            </div>
-
-            <h3>Reconocimiento por Imagen</h3>
-
-            <p>
-              Arrastre y suelte una fotografía del residuo o haga clic para
-              capturar desde la cámara.
-            </p>
-
-            <div className={style.buttonGroup}>
-              <button className={style.btnPrimary}>Subir Archivo</button>
-              <button className={style.btnSecondary}>Abrir Cámara</button>
-            </div>
+            {/* ── Estado: analizando ── */}
+            {analizando ? (
+              <div className={style.loadingContainer}>
+                <div className={style.spinner} />
+                <p className={style.loadingText}>Analizando imagen con IA...</p>
+              </div>
+            ) : !imagen ? (
+              /* ── Estado: sin imagen ── */
+              <>
+                <div className={style.iconCircle}>
+                  <span className="material-symbols-outlined">add_a_photo</span>
+                </div>
+                <h3>Reconocimiento por Imagen</h3>
+                <div className={style.buttonGroup}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSeleccionarImagen}
+                    style={{ display: "none" }}
+                    id="fileInput"
+                  />
+                  <label htmlFor="fileInput" className={style.btnPrimary}>
+                    Subir Archivo
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    id="cameraInput"
+                    style={{ display: "none" }}
+                    onChange={handleSeleccionarImagen}
+                  />
+                  <label htmlFor="cameraInput" className={style.btnSecondary}>
+                    Abrir Camara
+                  </label>
+                </div>
+              </>
+            ) : (
+              /* ── Estado: imagen lista para enviar ── */
+              <>
+                <img
+                  src={URL.createObjectURL(imagen)}
+                  alt="preview"
+                  className={style.img__preview}
+                />
+                <div className={style.buttonGroup}>
+                  <button
+                    type="button"
+                    className={style.btnPrimary}
+                    onClick={enviarImagen}
+                  >
+                    Enviar
+                  </button>
+                  <button
+                    type="button"
+                    className={style.btnSecondary}
+                    onClick={() => setImagen(null)}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           <div className={style.cardVoice}>
             <div className={`${style.iconCircle} ${style.voiceIcon}`}>
               <span className="material-symbols-outlined">mic</span>
             </div>
-
             <h3>RECONOCIMIENTO POR VOZ</h3>
-
             <p>Diga el nombre del objeto para clasificar</p>
           </div>
 
           <div className={style.cardCategories}>
             <h4 className={style.sectionTitle}>Categorías Predefinidas</h4>
-
             {loading ? (
               <p className={style.loadingText}>Cargando categorías...</p>
             ) : (
@@ -213,7 +307,6 @@ export function ClasificacionPage() {
               <span className={style.priceLabel}>
                 Monto a pagar al usuario:
               </span>
-
               <span className={style.priceValue}>
                 ${precioTotal.toFixed(2)}
               </span>
@@ -223,7 +316,6 @@ export function ClasificacionPage() {
               <button type="submit" className={style.btnModalConfirm}>
                 Confirmar Registro
               </button>
-
               <button
                 type="button"
                 className={style.btnModalCancel}
