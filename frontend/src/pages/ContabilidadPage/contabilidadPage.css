@@ -1,11 +1,10 @@
-/* --- FONDO Y ENCABEZADO --- */
 .dashboardContainer {
   padding: 30px;
-  padding-bottom: 60px; /* Da un respiro al final para que no quede pegado */
+  padding-bottom: 60px;
   background-color: #f8f9fa;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
-  overflow-y: auto; /* 👈 ¡ESTA ES LA MAGIA QUE ACTIVA EL SCROLL! */
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
@@ -61,7 +60,6 @@
   font-weight: 800;
 }
 
-/* --- CONTENIDO PRINCIPAL (Dos columnas) --- */
 .dashboardContentGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -93,7 +91,6 @@
   font-size: 13px;
 }
 
-/* --- FILTROS DE GRÁFICA --- */
 .filterToggle {
   background: #f1f3f5;
   padding: 4px;

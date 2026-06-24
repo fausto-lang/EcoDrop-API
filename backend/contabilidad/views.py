@@ -89,9 +89,6 @@ def contabilidad_diaria(request):
         hoy = timezone.now().date()
         mes_actual = hoy.month
         anio_actual = hoy.year
-
-        # ✅ CORRECCIÓN #3: fecha es DateField, no DateTimeField.
-        # Se usa fecha=hoy en vez de fecha__date=hoy
         registros_hoy = Contabilidad.objects.filter(fecha=hoy)
         registros_mes = Contabilidad.objects.filter(
             fecha__month=mes_actual, fecha__year=anio_actual)
@@ -134,7 +131,6 @@ def estadisticas_grafico(request):
         mes_actual = hoy.month
         anio_actual = hoy.year
 
-        # ✅ fecha es DateField → se filtra directamente
         registros_hoy = Contabilidad.objects.filter(fecha=hoy)
         registros_mes = Contabilidad.objects.filter(
             fecha__month=mes_actual, fecha__year=anio_actual)

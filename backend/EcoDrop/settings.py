@@ -78,8 +78,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# ✅ CORRECCIÓN #4: MEDIA_ROOT faltaba — sin esto default_storage.location
-# apunta a una ruta relativa impredecible y las imágenes temporales fallan
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

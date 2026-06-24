@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import style from "./ClasificacionPage.module.css";
 
@@ -12,59 +12,14 @@ export function ClasificacionPage() {
 
   const [cantidadKg, setCantidadKg] = useState("");
   const [precioTotal, setPrecioTotal] = useState(0);
+
   const [imagen, setImagen] = useState(null);
-  const [analizando, setAnalizando] = useState(false); // ← nuevo estado
+  const [analizando, setAnalizando] = useState(false);
 
-  const enviarImagen = async () => {
-    if (!imagen) return alert("No hay imagen");
-
-    const formData = new FormData();
-    formData.append("imagen", imagen);
-
-    setAnalizando(true); // ← empieza a cargar
-
-    try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/clasificar/imagen/",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      );
-
-      const { residuo_id, error } = res.data;
-
-      if (error) {
-        return alert(`La IA no pudo clasificar: ${error}`);
-      }
-
-      if (!residuo_id) {
-        return alert("La IA no devolvió una categoría válida.");
-      }
-
-      const categoriaDetectada = categorias.find(
-        (c) => String(c.id) === String(residuo_id),
-      );
-
-      if (!categoriaDetectada) {
-        return alert("La categoría detectada no existe en el sistema.");
-      }
-
-      setImagen(null);
-      setUsuarioSeleccionado("");
-      setCantidadKg("");
-      setPrecioTotal(0);
-      setCategoriaSeleccionada(categoriaDetectada);
-    } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.error || "Error al conectar con la IA.");
-    } finally {
-      setAnalizando(false); // ← termina de cargar siempre
-    }
-  };
-
-  const handleSeleccionarImagen = (e) => {
-    const file = e.target.files[0];
-    if (file) setImagen(file);
-  };
+  const [grabando, setGrabando] = useState(false);
+  const [analizandoVoz, setAnalizandoVoz] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -94,6 +49,115 @@ export function ClasificacionPage() {
     }
   }, [cantidadKg, categoriaSeleccionada]);
 
+  const handleSeleccionarImagen = (e) => {
+    const file = e.target.files[0];
+    if (file) setImagen(file);
+  };
+
+  const enviarImagen = async () => {
+    if (!imagen) return alert("No hay imagen");
+
+    const formData = new FormData();
+    formData.append("imagen", imagen);
+    setAnalizando(true);
+
+    try {
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/clasificar/imagen/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+
+      const { residuo_id, error } = res.data;
+      if (error) return alert(`La IA no pudo clasificar: ${error}`);
+      if (!residuo_id) return alert("La IA no devolvió una categoría válida.");
+
+      const categoriaDetectada = categorias.find(
+        (c) => String(c.id) === String(residuo_id),
+      );
+      if (!categoriaDetectada)
+        return alert("La categoría detectada no existe en el sistema.");
+
+      setImagen(null);
+      setUsuarioSeleccionado("");
+      setCantidadKg("");
+      setPrecioTotal(0);
+      setCategoriaSeleccionada(categoriaDetectada);
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "Error al conectar con la IA.");
+    } finally {
+      setAnalizando(false);
+    }
+  };
+
+  const iniciarGrabacion = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      chunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+
+        const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+        await enviarAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
+      setGrabando(true);
+    } catch (err) {
+      alert("No se pudo acceder al micrófono. Verificá los permisos.");
+      console.error(err);
+    }
+  };
+
+  const detenerGrabacion = () => {
+    if (mediaRecorderRef.current && grabando) {
+      mediaRecorderRef.current.stop();
+      setGrabando(false);
+    }
+  };
+
+  const enviarAudio = async (audioBlob) => {
+    setAnalizandoVoz(true);
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "grabacion.webm");
+
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/clasificar/voz/",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+
+      const { residuo_id, cantidad_kg, error } = res.data;
+      if (error) return alert(`La IA no pudo clasificar: ${error}`);
+      if (!residuo_id) return alert("La IA no detectó ninguna categoría.");
+
+      const categoriaDetectada = categorias.find(
+        (c) => String(c.id) === String(residuo_id),
+      );
+      if (!categoriaDetectada)
+        return alert("La categoría detectada no existe en el sistema.");
+
+      setUsuarioSeleccionado("");
+      setCantidadKg(cantidad_kg && cantidad_kg > 0 ? String(cantidad_kg) : "");
+      setPrecioTotal(0);
+      setCategoriaSeleccionada(categoriaDetectada);
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "Error al conectar con la IA.");
+    } finally {
+      setAnalizandoVoz(false);
+    }
+  };
   const handleSeleccionarCategoria = (cat) => {
     setCategoriaSeleccionada(cat);
     setUsuarioSeleccionado("");
@@ -112,7 +176,6 @@ export function ClasificacionPage() {
       const usuario = usuarios.find(
         (u) => String(u.id) === String(usuarioSeleccionado),
       );
-
       if (!usuario) return alert("Usuario no encontrado.");
 
       const kg = parseFloat(cantidadKg);
@@ -157,15 +220,14 @@ export function ClasificacionPage() {
         </header>
 
         <div className={style.bentoGrid}>
+          {/* ── CARD IMAGEN ── */}
           <div className={style.cardImage}>
-            {/* ── Estado: analizando ── */}
             {analizando ? (
               <div className={style.loadingContainer}>
                 <div className={style.spinner} />
                 <p className={style.loadingText}>Analizando imagen con IA...</p>
               </div>
             ) : !imagen ? (
-              /* ── Estado: sin imagen ── */
               <>
                 <div className={style.iconCircle}>
                   <span className="material-symbols-outlined">add_a_photo</span>
@@ -191,12 +253,11 @@ export function ClasificacionPage() {
                     onChange={handleSeleccionarImagen}
                   />
                   <label htmlFor="cameraInput" className={style.btnSecondary}>
-                    Abrir Camara
+                    Abrir Cámara
                   </label>
                 </div>
               </>
             ) : (
-              /* ── Estado: imagen lista para enviar ── */
               <>
                 <img
                   src={URL.createObjectURL(imagen)}
@@ -224,11 +285,38 @@ export function ClasificacionPage() {
           </div>
 
           <div className={style.cardVoice}>
-            <div className={`${style.iconCircle} ${style.voiceIcon}`}>
-              <span className="material-symbols-outlined">mic</span>
-            </div>
-            <h3>RECONOCIMIENTO POR VOZ</h3>
-            <p>Diga el nombre del objeto para clasificar</p>
+            {analizandoVoz ? (
+              <div className={style.loadingContainer}>
+                <div className={style.spinner} />
+                <p className={style.loadingText}>Analizando audio con IA...</p>
+              </div>
+            ) : (
+              <>
+                <div
+                  className={`${style.iconCircle} ${style.voiceIcon} ${grabando ? style.voiceIcon__grabando : ""}`}
+                >
+                  <span className="material-symbols-outlined">
+                    {grabando ? "stop_circle" : "mic"}
+                  </span>
+                </div>
+
+                <h3>RECONOCIMIENTO POR VOZ</h3>
+
+                <p>
+                  {grabando
+                    ? "Grabando... presioná para detener"
+                    : "Presioná para hablar y clasificar"}
+                </p>
+
+                <button
+                  type="button"
+                  className={grabando ? style.btnSecondary : style.btnPrimary}
+                  onClick={grabando ? detenerGrabacion : iniciarGrabacion}
+                >
+                  {grabando ? "Detener" : "Hablar"}
+                </button>
+              </>
+            )}
           </div>
 
           <div className={style.cardCategories}>
@@ -255,7 +343,6 @@ export function ClasificacionPage() {
         </div>
       </div>
 
-      {/* MODAL */}
       {categoriaSeleccionada && (
         <div className={style.modalOverlay}>
           <form
