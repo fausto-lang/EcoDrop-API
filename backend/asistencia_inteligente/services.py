@@ -25,7 +25,7 @@ class AsistenciaInteligenteService:
         prompt = (
             "Analiza detalladamente la imagen de este residuo.\n"
            f"1. Identifica cuál de las siguientes categorías se menciona: [{opciones_explicitas}]. "
-            "si se trata de algo parecido por ejemplo una botella de vidrio entonces lo asocias al tipo especifico que tienes en las opciones tal cual no le colocas tildes ni nada mas .\n"
+            "si se trata de algo parecido por ejemplo una caja de cartos entonces lo asocias al tipo especifico que tienes en las opciones tal cual no le colocas tildes ni nada mas .\n"
             "Tu respuesta para 'categoria_detectada' debe ser estrictamente una de esas opciones.\n"
             "escrita exactamente igual.\n\n"
             "Responde ÚNICAMENTE un objeto JSON con la estructura exacta, sin bloques markdown:\n"
@@ -73,7 +73,7 @@ class AsistenciaInteligenteService:
         prompt = (
             "Escucha atentamente el audio adjunto donde el usuario menciona un residuo y su peso.\n"
             f"1. Identifica cuál de las siguientes categorías se menciona: [{opciones_explicitas}]. "
-            "si se trata de algo parecido por ejemplo una botella de vidrio entonces lo asocias al tipo especifico que tienes en las opciones tal cual no le colocas tildes ni nada mas .\n"
+            "si se trata de algo parecido por ejemplo una caja de carton entonces lo asocias al tipo especifico que tienes en las opciones tal cual.\n"
             "Tu respuesta para 'categoria_detectada' debe ser estrictamente una de esas opciones.\n"
             "2. Extrae la cantidad numérica de peso mencionada en kilogramos.\n\n"
             "Responde ÚNICAMENTE un objeto JSON con la estructura exacta, sin bloques markdown:\n"
