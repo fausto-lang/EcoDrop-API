@@ -16,6 +16,11 @@ export function ClasificacionPage() {
   const [imagen, setImagen] = useState(null);
   const [analizando, setAnalizando] = useState(false);
 
+  // NUEVOS ESTADOS PARA LA CÁMARA EN LAPTOP
+  const [encenderCamara, setEncenderCamara] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   const [grabando, setGrabando] = useState(false);
   const [analizandoVoz, setAnalizandoVoz] = useState(false);
   const mediaRecorderRef = useRef(null);
@@ -33,7 +38,7 @@ export function ClasificacionPage() {
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false);
+        loading && setLoading(false);
       }
     };
     cargarDatos();
@@ -52,6 +57,54 @@ export function ClasificacionPage() {
   const handleSeleccionarImagen = (e) => {
     const file = e.target.files[0];
     if (file) setImagen(file);
+  };
+
+  // FUNCION PARA INICIAR WEBCAM EN LAPTOP
+  const iniciarCamara = async () => {
+    setEncenderCamara(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }, // Intenta usar la trasera en movil, o la webcam en laptop
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Error al acceder a la cámara:", err);
+      alert(
+        "No se pudo acceder a la cámara. Revisa los permisos de tu navegador.",
+      );
+      setEncenderCamara(false);
+    }
+  };
+
+  // FUNCION PARA CAPTURAR LA FOTO DE LA WEBCAM
+  const capturarFoto = () => {
+    if (videoRef.current && streamRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], "captura.jpg", { type: "image/jpeg" });
+          setImagen(file);
+          detenerCamara();
+        }
+      }, "image/jpeg");
+    }
+  };
+
+  const detenerCamara = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    setEncenderCamara(false);
   };
 
   const enviarImagen = async () => {
@@ -91,25 +144,21 @@ export function ClasificacionPage() {
     }
   };
 
+  // ── LOGICA DE AUDIO (MANTENIDA IGUAL) ──
   const iniciarGrabacion = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
       chunksRef.current = [];
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
-
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
-
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
         await enviarAudio(audioBlob);
       };
-
       mediaRecorder.start();
       setGrabando(true);
     } catch (err) {
@@ -158,6 +207,7 @@ export function ClasificacionPage() {
       setAnalizandoVoz(false);
     }
   };
+
   const handleSeleccionarCategoria = (cat) => {
     setCategoriaSeleccionada(cat);
     setUsuarioSeleccionado("");
@@ -167,7 +217,6 @@ export function ClasificacionPage() {
 
   const handleConfirmarClasificacion = async (e) => {
     e.preventDefault();
-
     if (!usuarioSeleccionado || !cantidadKg || !categoriaSeleccionada) {
       return alert("Por favor, llena todos los campos.");
     }
@@ -177,7 +226,6 @@ export function ClasificacionPage() {
         (u) => String(u.id) === String(usuarioSeleccionado),
       );
       if (!usuario) return alert("Usuario no encontrado.");
-
       const kg = parseFloat(cantidadKg);
 
       await axios.post("http://127.0.0.1:8000/api/contabilidad/movimiento/", {
@@ -220,13 +268,38 @@ export function ClasificacionPage() {
         </header>
 
         <div className={style.bentoGrid}>
-          {/* ── CARD IMAGEN ── */}
+          {/* ── CARD IMAGEN (CORREGIDA) ── */}
           <div className={style.cardImage}>
             {analizando ? (
               <div className={style.loadingContainer}>
                 <div className={style.spinner} />
                 <p className={style.loadingText}>Analizando imagen con IA...</p>
               </div>
+            ) : encenderCamara ? (
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className={style.img__preview}
+                />
+                <div className={style.buttonGroup}>
+                  <button
+                    type="button"
+                    className={style.btnPrimary}
+                    onClick={capturarFoto}
+                  >
+                    Tomar Foto
+                  </button>
+                  <button
+                    type="button"
+                    className={style.btnSecondary}
+                    onClick={detenerCamara}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
             ) : !imagen ? (
               <>
                 <div className={style.iconCircle}>
@@ -244,17 +317,14 @@ export function ClasificacionPage() {
                   <label htmlFor="fileInput" className={style.btnPrimary}>
                     Subir Archivo
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    id="cameraInput"
-                    style={{ display: "none" }}
-                    onChange={handleSeleccionarImagen}
-                  />
-                  <label htmlFor="cameraInput" className={style.btnSecondary}>
+
+                  <button
+                    type="button"
+                    className={style.btnSecondary}
+                    onClick={iniciarCamara}
+                  >
                     Abrir Cámara
-                  </label>
+                  </button>
                 </div>
               </>
             ) : (
@@ -284,6 +354,7 @@ export function ClasificacionPage() {
             )}
           </div>
 
+          {/* CARD VOZ */}
           <div className={style.cardVoice}>
             {analizandoVoz ? (
               <div className={style.loadingContainer}>
@@ -299,15 +370,7 @@ export function ClasificacionPage() {
                     {grabando ? "stop_circle" : "mic"}
                   </span>
                 </div>
-
                 <h3>RECONOCIMIENTO POR VOZ</h3>
-
-                <p>
-                  {grabando
-                    ? "Grabando... presioná para detener"
-                    : "Presioná para hablar y clasificar"}
-                </p>
-
                 <button
                   type="button"
                   className={grabando ? style.btnSecondary : style.btnPrimary}
@@ -319,6 +382,7 @@ export function ClasificacionPage() {
             )}
           </div>
 
+          {/* CARD CATEGORIAS */}
           <div className={style.cardCategories}>
             <h4 className={style.sectionTitle}>Categorías Predefinidas</h4>
             {loading ? (
@@ -343,6 +407,7 @@ export function ClasificacionPage() {
         </div>
       </div>
 
+      {/* MODAL (MANTENIDO IGUAL) */}
       {categoriaSeleccionada && (
         <div className={style.modalOverlay}>
           <form
@@ -352,14 +417,12 @@ export function ClasificacionPage() {
             <h3 className={style.modalTitle}>
               Reciclar: {categoriaSeleccionada.tipo}
             </h3>
-
             <p className={style.modalSubtitle}>
               Precio por kilo definido:{" "}
               <strong>
                 ${parseFloat(categoriaSeleccionada.precio_por_kilo).toFixed(2)}
               </strong>
             </p>
-
             <div className={style.inputGroup}>
               <label htmlFor="usuario">Reciclador</label>
               <select
@@ -376,7 +439,6 @@ export function ClasificacionPage() {
                 ))}
               </select>
             </div>
-
             <div className={style.inputGroup}>
               <label htmlFor="cantidadKg">Cantidad a Depositar (Kg)</label>
               <input
@@ -387,9 +449,8 @@ export function ClasificacionPage() {
                 value={cantidadKg}
                 onChange={(e) => setCantidadKg(e.target.value)}
                 required
-              />
+              ></input>
             </div>
-
             <div className={style.priceSummaryCard}>
               <span className={style.priceLabel}>
                 Monto a pagar al usuario:
@@ -398,7 +459,6 @@ export function ClasificacionPage() {
                 ${precioTotal.toFixed(2)}
               </span>
             </div>
-
             <div className={style.modalActions}>
               <button type="submit" className={style.btnModalConfirm}>
                 Confirmar Registro
