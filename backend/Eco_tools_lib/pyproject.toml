@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Eco_tools"
+version = "0.1.0"
+description = "Herramientas de asistencia inteligente y gramática para EcoDrop"
+dependencies = [
+    "google-genai",
+    "python-dotenv",
+    "pillow",
+    "requests",
+    "python-magic",
+    "pydub"
+]
